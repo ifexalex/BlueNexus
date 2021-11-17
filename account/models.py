@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.apps import apps
 from django.contrib.auth.hashers import make_password
 from django.utils.translation import gettext_lazy as _
+from django.utils.formats import  number_format
 from django.contrib.auth.models import BaseUserManager, AbstractUser, PermissionsMixin, UserManager
 
 # Create your models here.
@@ -16,9 +17,10 @@ class MyUserManager(BaseUserManager):
         
         if not email:
             raise ValueError('User must have an email address')
-        email = self.normalize_email(email).lower()
+        email.lower()
+        email = self.normalize_email(email)
         user = self.model(email = email, username=username ,first_name=first_name, last_name=last_name,**extra_fields)
-        user.set_password(password)
+        user.password = make_password(password)
         user.save(using = self._db)
         return user
     
@@ -26,8 +28,6 @@ class MyUserManager(BaseUserManager):
     def create_user(self, email, username ,first_name, last_name,password, **extra_fields):
         extra_fields.setdefault('is_staff',False )
         extra_fields.setdefault('is_superuser',False)
-        
-        
         return self._create_user(email,username, first_name, last_name,password, **extra_fields )
     
     def create_vendor(self, email, first_name=None, last_name=None, password=None, **extra_fields):
@@ -73,8 +73,8 @@ class User(AbstractUser, PermissionsMixin):
     first_name = models.CharField(_('first name'), max_length=150, blank=True)
     last_name = models.CharField(_('last name'), max_length=150, blank=True)
     email = models.EmailField(_('email address'), unique=True)
-    phone_number = models.CharField(_('phone number'), max_length=50)
-    
+    phone_number = models.CharField(_('phone number'), max_length=50, blank= True)
+    credit_balance = models.DecimalField(default=20000, decimal_places=2, max_digits=10)
     
     
     
@@ -86,6 +86,16 @@ class User(AbstractUser, PermissionsMixin):
         default=False,
         help_text=_('Designates whether the user can log into this admin site.'),
     )
+    
+    
+    
+    
+    is_eligible = models.BooleanField(
+        _('Eligible for Credit purchase'),
+        default=False,
+        help_text=_('Designates whether the user can is eligible for credit purchase.'),
+    )
+    
     
     is_superuser = models.BooleanField(
         _('superuser status'),
@@ -111,12 +121,16 @@ class User(AbstractUser, PermissionsMixin):
     )
     date_joined = models.DateTimeField(_('date joined'), auto_now_add=True)
     
+
+    
+    objects = MyUserManager()
+    
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
         'username', 'first_name', 'last_name', 
     ]
     
-    objects = MyUserManager()
-    
-    
-
+    @property
+    def balance(self):
+        return number_format(self.credit_balance,force_grouping=True)

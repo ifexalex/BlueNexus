@@ -91,22 +91,60 @@
           </form>
           <!-- search-wrap .end// -->
         </div>
+
+        {% if user.id and user.is_eligible is True%}
+        <div class="widget-header">
+          <small
+            class="title text-center"
+            style="margin-left: 25px; color: #3167eb"
+          >
+            Credit Balance</small
+          >
+          <div>
+            <a
+              class="nav-link"
+              style="color: #3167eb; font-weight: bold; margin-left: 25px"
+            >
+              <i class="fa fa-coins" style="color: #3167eb"></i>
+              ₦{{user.balance}}
+            </a>
+          </div>
+        </div>
+        {% endif %}
+
         <!-- col.// -->
-        <div class="col-lg-3 col-sm-6 col-8 order-2 order-lg-3">
+        <div class="col-lg-3 col-sm-5 col-8 order-2 order-lg-3">
           <div class="d-flex justify-content-end mb-3 mb-lg-0">
+            {% if user.id is not None %}
+
+            <div class="widget-header">
+              <small class="title text-muted"
+                >Welcome {{user.first_name}}</small
+              >
+              <div>
+                <a href="#">DashBoard</a>
+                <span class="dark-transp"> | </span>
+                <a href="{% url 'logout' %}"> Logout</a>
+              </div>
+            </div>
+            {% else %}
             <div class="widget-header">
               <small class="title text-muted">Welcome guest!</small>
               <div>
-                <a href="./signin.html">Sign in</a>
+                <a href="{% url 'login' %}">Sign in</a>
                 <span class="dark-transp"> | </span>
-                <a href="./register.html"> Register</a>
+                <a href="{% url 'register' %}"> Register</a>
               </div>
             </div>
-            <a href="./cart.html" class="widget-header pl-3 ml-3">
+            {% endif %}
+
+            <a href="{% url 'cart' %}" class="widget-header pl-3 ml-3">
               <div class="icon icon-sm rounded-circle border">
                 <i class="fa fa-shopping-cart"></i>
               </div>
-              <span class="badge badge-pill badge-danger notify">0</span>
+              <span class="badge badge-pill badge-danger notify"
+                >{{cart_count}}</span
+              >
             </a>
           </div>
           <!-- widgets-wrap.// -->
