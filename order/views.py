@@ -84,6 +84,10 @@ def place_order(request, total=0, quantity=0,):
 
 def payment(request,total=0, quantity=0,):
     current_user = request.user
+    order = Order.objects.filter(user=current_user).first()
+    order_count = Order.objects.filter(user=current_user).count()
+    
+   
     cart_items = CartItem.objects.filter(user=current_user)
     grand_total = 0
     vat = 0
@@ -93,29 +97,63 @@ def payment(request,total=0, quantity=0,):
     vat = (2 * total)/100
     grand_total = total + vat
     
-    #initialize paystack Gateway
-    initialize_transaction = paystack.transaction.initialize(
-        email= current_user.email,
-        amount=int(grand_total)*100,
-        currency='NGN',
-    )
     
-    paymentObj = Payment.objects.create(
+        
+    if current_user.is_eligible is True and order_count >1: 
+        current_user.credit_balance  = current_user.credit_balance - order.order_total
+        current_user.save()
+        
+        cart = CartItem.objects.filter(user=current_user)
+        cart.delete()
+        
+        paymentObj = Payment.objects.create(
         user=current_user,
         payment_id = cart_item.cart.cart_id,
         payment_method = 'Paystack',
         amount_paid = str(grand_total),
         status = 'Pending',
-    )
-    
-    
-    order = Order.objects.update(
+        )
+        
+        
+        order = Order.objects.update(
         payment=paymentObj.id,
         status = 'Accepted',
-    )
+        )
     
-    cart = Cart.objects.filter(cart_id=paymentObj.payment_id)
-    cart.delete()
+        cart = Cart.objects.filter(cart_id=paymentObj.payment_id)
+        cart.delete()
+    
+        payment = Payment.objects.filter(user= current_user)
+        payment.update(status='Paid')
+        context = {
+        'order': order,
+        }
+        return render(request, 'orders/order_complete.html', context)
+    else:
+        #initialize paystack Gateway
+        initialize_transaction = paystack.transaction.initialize(
+        email= current_user.email,
+        amount=int(grand_total)*100,
+        currency='NGN',
+        )
+    
+
+        paymentObj = Payment.objects.create(
+            user=current_user,
+            payment_id = cart_item.cart.cart_id,
+            payment_method = 'Paystack',
+            amount_paid = str(grand_total),
+            status = 'Pending',
+        )
+    
+    
+        order = Order.objects.update(
+            payment=paymentObj.id,
+            status = 'Accepted',
+        )
+    
+        cart = Cart.objects.filter(cart_id=paymentObj.payment_id)
+        cart.delete()
     
     return HttpResponseRedirect(initialize_transaction['data']['authorization_url'])
 
@@ -136,10 +174,6 @@ def order_complete(request):
     if current_user.is_eligible is False:
     
         current_user.is_eligible =True
-        current_user.save()
-        
-    elif current_user.is_eligible is True and order_count >1: 
-        current_user.credit_balance  = current_user.credit_balance - order.order_total
         current_user.save()
 
     
