@@ -15,11 +15,12 @@ Including another URLconf
 """
 
 from django.urls import path
-from .views import CartPage, add_cart, remove_cart_item, remove_cart
+from .views import CartPage, add_cart, remove_cart_item, remove_cart, checkout_cart
 
 urlpatterns = [
     path('', CartPage, name="cart"),
-    path('add_cart/<int:product_id>/', add_cart, name="add_cart"),
-    path('remove_cart_item/<int:product_id>/', remove_cart_item, name="remove_cart_item"),
-    path('remove_cart/<int:product_id>/', remove_cart, name="remove_cart"),
+    path('add_cart/<int:product_id>', add_cart, name="add_cart"),
+    path('remove_cart_item/<int:product_id>/<int:cart_item_id>/', remove_cart_item, name="remove_cart_item"),
+    path('remove_cart/<int:product_id>/<int:cart_item_id>/', remove_cart, name="remove_cart"),
+    path('checkout/', checkout_cart, name="checkout"),
 ]

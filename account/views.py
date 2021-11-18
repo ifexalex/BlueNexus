@@ -1,10 +1,12 @@
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, HttpResponseRedirect
 from django.contrib.auth.hashers import make_password
 from account.form import RegisterForm
 from account.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
+from cart.models import Cart, CartItem
+from cart.views import _cart_session
 
 # Create your views here.
 
@@ -49,7 +51,23 @@ def Login(request):
         
         user = authenticate(email=email, password=password)
         if user:
+            
+            try:
+                cart = Cart.objects.get(cart_id= _cart_session(request))
+                is_cart_item_exists = CartItem.objects.filter(cart = cart).exists()
+                if is_cart_item_exists:
+                    cart_item = CartItem.objects.filter(cart=cart)
+                    for item in cart_item:
+                        
+                        item.user = user
+                        item.save()
+            except:
+                pass
             login(request, user)
+            next = request.POST.get('next')
+            print(f' about to go to {next}')
+            if next:
+                return redirect(next)
             return redirect('homepage')
         else:
             messages.error(request,'invalid login credentials')
