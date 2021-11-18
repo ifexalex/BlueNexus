@@ -33,7 +33,8 @@ def Register(request):
             
             user.save()
             messages.success(request,'Registration successful')
-            redirect('login')
+            return render(request, 'account/login.html')
+    
     else:
     
         form = RegisterForm()

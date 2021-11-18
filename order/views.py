@@ -125,7 +125,7 @@ def order_complete(request):
     
     current_user = request.user
     order = Order.objects.filter(user=current_user).first()
-    
+    order_count = Order.objects.filter(user=current_user).count()
     cart = CartItem.objects.filter(user=current_user)
     cart.delete()
     
@@ -137,9 +137,11 @@ def order_complete(request):
     
         current_user.is_eligible =True
         current_user.save()
-    else:
+        
+    elif current_user.is_eligible is True and order_count >1: 
         current_user.credit_balance  = current_user.credit_balance - order.order_total
         current_user.save()
+
     
     context = {
         'order': order,
