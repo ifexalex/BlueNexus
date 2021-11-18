@@ -1,0 +1,1 @@
+web: gunicorn BlueNexus.wsgi --log-file -
