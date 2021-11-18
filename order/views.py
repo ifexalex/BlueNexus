@@ -1,7 +1,7 @@
 from django.http import response
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import render
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponse, JsonResponse
 from cart.models import Cart, CartItem
 from .forms import OrderForm
@@ -129,7 +129,7 @@ def payment(request,total=0, quantity=0, cart_id=None):
         context = {
         'order': order,
         }
-        return redirect('order_complete')
+        return redirect(reverse('order_complete'))
     else:
         #initialize paystack Gateway
         initialize_transaction = paystack.transaction.initialize(
