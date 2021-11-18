@@ -82,7 +82,7 @@ def place_order(request, total=0, quantity=0,):
     
     
 
-def payment(request,total=0, quantity=0,):
+def payment(request,total=0, quantity=0, cart_id=None):
     current_user = request.user
     order = Order.objects.filter(user=current_user).first()
     order_count = Order.objects.filter(user=current_user).count()
@@ -94,6 +94,8 @@ def payment(request,total=0, quantity=0,):
     for cart_item in cart_items:
         total += (cart_item.product.price * cart_item.quantity)
         quantity += cart_item.quantity
+        cart_id = cart_item.cart
+        
     vat = (2 * total)/100
     grand_total = total + vat
     
@@ -108,7 +110,7 @@ def payment(request,total=0, quantity=0,):
         
         paymentObj = Payment.objects.create(
         user=current_user,
-        payment_id = cart_item.cart.cart_id,
+        payment_id = cart_id,
         payment_method = 'Paystack',
         amount_paid = str(grand_total),
         status = 'Pending',
