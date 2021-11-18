@@ -94,8 +94,7 @@ def payment(request,total=0, quantity=0, cart_id=None):
     for cart_item in cart_items:
         total += (cart_item.product.price * cart_item.quantity)
         quantity += cart_item.quantity
-        cart_id = cart_item.cart
-        
+        cart_id = cart_item.cart   
     vat = (2 * total)/100
     grand_total = total + vat
     
@@ -130,7 +129,7 @@ def payment(request,total=0, quantity=0, cart_id=None):
         context = {
         'order': order,
         }
-        return render(request, 'orders/order_complete.html', context)
+        return redirect('order_complete')
     else:
         #initialize paystack Gateway
         initialize_transaction = paystack.transaction.initialize(
